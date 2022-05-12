@@ -17,10 +17,10 @@ class VDControl(FACL):
         self.velocity_path = 0
         self.input = 0
         self.initial_position = state.copy()
-        self.territory_coordinates = [45,45]  # these will eventually be in the game class and passed into the actor
+        self.territory_coordinates = [10,10]  # these will eventually be in the game class and passed into the actor
         self.r = 1 #radius of the finish line/territory
         self.a = 0 # acceleration
-        self.v = 0 # velocity, m/s
+        self.v = 5 # velocity, m/s
         self.m = 1 # mass, kg
         self.b = 0.00001 # viscosity, newton-second per square metre
         self.dt = 0.01
@@ -53,12 +53,16 @@ class VDControl(FACL):
         # self.state[1] = self.state[1] + self.v * np.sin(self.u_t)
         # self.update_path(self.state)
         a = self.a
-        v = 100*self.u_t
+        v = self.v
         #
         # self.a = 100*self.u_t #(1 / self.m) * (100*self.u_t - self.b * v)
         # self.v = v + a * self.dt
-        self.state[0] = self.state[0] + v * self.dt
-        self.state[1] = self.state[1] + v * self.dt
+        for i in range(10):
+            self.state[0] = self.state[0] + v * self.dt
+            self.state[1] = self.state[1] + v * self.dt
+        self.v = self.v + 100*self.u_t * self.dt
+        #self.v = self.v + self.a*self.dt
+        #self.a = (1 / self.m) * (100*self.u_t - self.b * v)
         self.update_path(self.state)
         self.update_v_path(self.v)
         self.update_input_array(self.u_t)
@@ -73,7 +77,7 @@ class VDControl(FACL):
         self.distance_away_from_target_t = self.distance_from_target()
         self.input = 0
         self.a = 0
-        self.v = 0
+        self.v = 5
         pass
 
     def update_path(self, state):

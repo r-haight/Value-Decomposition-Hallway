@@ -240,8 +240,8 @@ class FACL:
     # are decreased a little
     def updates_after_an_epoch(self):
         self.sigma = 0.999 * self.sigma
-        self.alpha = 0.999 * self.alpha
-        self.beta = 0.999 * self.beta
+        self.alpha = 0.9999 * self.alpha
+        self.beta = 0.9999 * self.beta
         # self.sigma = self.sigma*10**(np.log10(0.1)/1000)
         # self.alpha = self.alpha * 10 ** (np.log10(0.1) / 1000)
         # self.beta = self.beta * 10 ** (np.log10(0.1) / 1000)

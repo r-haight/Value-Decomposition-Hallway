@@ -17,8 +17,8 @@ import time
 
 # General Fuzzy Parameters
 state = [0, 0] # start position on the grid. make random later
-state_max = [50, 50] # max values of the grid [x,y]
-state_min = [-10, -10] # smallest value of the grid [x,y]
+state_max = [10, 10] # max values of the grid [x,y]
+state_min = [-20, -20] # smallest value of the grid [x,y]
 num_of_mf = [29, 29] # breaking up the state space (grid in this case) into 29 membership functions
 
 
@@ -31,8 +31,15 @@ sharon = Agent(FACLcontroller) # create the agent with the above controller
 #print out all the rule sets
 print("rules:")
 print(sharon.controller.rules)
-for i in range(2000):
-
+for i in range(1000):
+    # self.controller.reset()
+    # for i in range(self.training_iterations_max):
+    #     self.controller.iterate_train()
+    #     if (self.controller.distance_from_target() < self.controller.r):  ##change to a check capture / completion function later
+    #         self.success += 1
+    #         break
+    # self.controller.updates_after_an_epoch()
+    # self.reward_total.append(self.reward_sum_for_a_single_epoch())
     sharon.run_one_epoch()
     if (i % 100 == 0):
         print(i)

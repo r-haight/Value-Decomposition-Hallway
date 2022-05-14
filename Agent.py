@@ -1,4 +1,4 @@
-import TestController
+import VDControl
 import FACL
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ import numpy as np
 class Agent:
     def __init__(self, controller):
         # default values
-        self.training_iterations_max = 300 # number of iteration in 1 epoch
+        self.training_iterations_max = 500 # number of iteration in 1 epoch
         self.game_iterations_max = 45
         self.controller = controller # this is the controller (FACL or FQL) that gets passed into the actor object
         self.success = 0 # this will count the number of sucesses (to be taken out later)
@@ -25,7 +25,7 @@ class Agent:
         # This function calls the controller iterator
         for i in range(self.training_iterations_max):
             self.controller.iterate_train()
-            if ( self.controller.distance_from_target() < self.controller.r): ##change to a check capture / completion function later
+            if (self.controller.state[0] >= 10): ##change to a check capture / completion function later
                 self.success +=1
                 break
         self.controller.updates_after_an_epoch()
@@ -55,7 +55,7 @@ class Agent:
     def print_path(self):  # this function prints the path of the agent taken
         x = [0] * (len(self.controller.path) - 1)
         y = [0] * (len(self.controller.path) - 1)
-        print(len(self.controller.path))
+        print('number of steps taken: ', len(self.controller.path))
         for i in range(len(self.controller.path) - 1):
             x[i] = self.controller.path[i][0]
             y[i] = self.controller.path[i][1]

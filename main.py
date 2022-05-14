@@ -18,8 +18,8 @@ import time
 # General Fuzzy Parameters
 state = [0, 0] # start position on the grid. make random later
 state_max = [10, 10] # max values of the grid [x,y]
-state_min = [-20, -20] # smallest value of the grid [x,y]
-num_of_mf = [29, 29] # breaking up the state space (grid in this case) into 29 membership functions
+state_min = [-10, -10] # smallest value of the grid [x,y]
+num_of_mf = [9, 9] # breaking up the state space (grid in this case) into 29 membership functions
 
 
 
@@ -31,7 +31,7 @@ sharon = Agent(FACLcontroller) # create the agent with the above controller
 #print out all the rule sets
 print("rules:")
 print(sharon.controller.rules)
-for i in range(1000):
+for i in range(3000):
     # self.controller.reset()
     # for i in range(self.training_iterations_max):
     #     self.controller.iterate_train()
@@ -45,7 +45,7 @@ for i in range(1000):
         print(i)
         print("time:", time.time()-start)
         print("xy path",sharon.controller.path) #numerical values of path
-        print("input, ut:", sharon.controller.input)
+        #print("input, ut:", sharon.controller.input)
 
 end = time.time()
 print('total train time : ', end-start)
@@ -56,6 +56,7 @@ print("xy path",sharon.controller.path) #numerical values of path
 print("input, ut:" , sharon.controller.input)
 sharon.print_path() #graph
 sharon.print_reward_graph()
+
 sharon.save_epoch_training_info() #save all the important info from our training sesh
 
 

@@ -20,9 +20,9 @@ class VDControl(FACL):
         self.territory_coordinates = [10,10]  # these will eventually be in the game class and passed into the actor
         self.r = 1 #radius of the finish line/territory
         self.a = 0 # acceleration
-        self.v = 5 # velocity, m/s
+        self.v = 0 # velocity, m/s
         self.m = 1 # mass, kg
-        self.b = 0.00001 # viscosity, newton-second per square metre
+        self.b = 0.01 # viscosity, newton-second per square metre
         self.dt = 0.01
         self.distance_away_from_target_t_plus_1 = 0 #this gets set later
         self.distance_away_from_target_t = self.distance_from_target()
@@ -34,11 +34,11 @@ class VDControl(FACL):
 
     def get_reward(self):
         self.distance_away_from_target_t_plus_1 = self.distance_from_target()
-        if (abs(self.state[0]  - self.territory_coordinates[0]) <= self.r and abs(self.state[1] - self.territory_coordinates[1]) <= self.r):
-            r = 100
+        if (self.state[0]  >= self.territory_coordinates[0] ):
+            r = 200
 
         else:
-            r = (self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
+            r = 100*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
         # print("reward", self.distance_away_from_target_t, '-', self.distance_away_from_target_t_plus_1, '=', r)
         self.distance_away_from_target_t = self.distance_away_from_target_t_plus_1
         # heading_desired = np.arctan( (self.territory_coordinates[1] - self.state[1]) / (self.territory_coordinates[0] - self.state[0]))
@@ -52,17 +52,21 @@ class VDControl(FACL):
         # self.state[0] = self.state[0] + self.v * np.cos(self.u_t)
         # self.state[1] = self.state[1] + self.v * np.sin(self.u_t)
         # self.update_path(self.state)
-        a = self.a
-        v = self.v
         #
-        # self.a = 100*self.u_t #(1 / self.m) * (100*self.u_t - self.b * v)
-        # self.v = v + a * self.dt
-        for i in range(10):
-            self.state[0] = self.state[0] + v * self.dt
-            self.state[1] = self.state[1] + v * self.dt
-        self.v = self.v + 100*self.u_t * self.dt
-        #self.v = self.v + self.a*self.dt
-        #self.a = (1 / self.m) * (100*self.u_t - self.b * v)
+        if(self.u_t>5):
+            self.u_t = 5
+        elif(self.u_t<-5):
+            self.u_t = -5
+
+        self.a = (1 / self.m) * (self.u_t - self.b * self.v)
+        self.v = self.v + self.a * self.dt
+        # for i in range(10):
+        #     self.state[0] = self.state[0] + self.v * self.dt
+        #     self.state[1] = self.state[1] + self.v * self.dt
+
+        self.state[0] = self.state[0] + self.v * self.dt
+        self.state[1] = self.state[1] + self.v * self.dt
+
         self.update_path(self.state)
         self.update_v_path(self.v)
         self.update_input_array(self.u_t)
@@ -77,7 +81,7 @@ class VDControl(FACL):
         self.distance_away_from_target_t = self.distance_from_target()
         self.input = 0
         self.a = 0
-        self.v = 5
+        self.v = 0
         pass
 
     def update_path(self, state):

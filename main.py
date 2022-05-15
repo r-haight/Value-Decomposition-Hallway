@@ -16,7 +16,7 @@ import time
 # This driver program looks at 
 
 # General Fuzzy Parameters
-state = [0, 0] # start position on the grid. make random later
+state = [2, 2] # start position on the grid. make random later
 state_max = [10, 10] # max values of the grid [x,y]
 state_min = [-10, -10] # smallest value of the grid [x,y]
 num_of_mf = [9, 9] # breaking up the state space (grid in this case) into 29 membership functions
@@ -24,27 +24,55 @@ num_of_mf = [9, 9] # breaking up the state space (grid in this case) into 29 mem
 
 
 ########## TRAINING SECTION ###############
+# two agents: sharon and diane
 
 start = time.time() # used to see how long the training time took
-FACLcontroller = VDControl(state, state_max, state_min, num_of_mf) #create the FACL controller
-sharon = Agent(FACLcontroller) # create the agent with the above controller
+Sharon_FACLcontroller = VDControl(state, state_max, state_min, num_of_mf) #create the FACL controller
+Diana_FACLcontroller = VDControl([0,0],state_max,state_min,num_of_mf)
+sharon = Agent(Sharon_FACLcontroller) # create the agent with the above controller
+diana = Agent(Diana_FACLcontroller)
+
 #print out all the rule sets
 print("rules:")
 print(sharon.controller.rules)
-for i in range(3000):
-    # self.controller.reset()
-    # for i in range(self.training_iterations_max):
-    #     self.controller.iterate_train()
-    #     if (self.controller.distance_from_target() < self.controller.r):  ##change to a check capture / completion function later
-    #         self.success += 1
-    #         break
-    # self.controller.updates_after_an_epoch()
-    # self.reward_total.append(self.reward_sum_for_a_single_epoch())
-    sharon.run_one_epoch()
+
+for i in range(1500):
+    sharon.controller.reset()
+    diana.controller.reset()
+    for j in range(sharon.training_iterations_max):
+        # sharon.controller.iterate_train()
+        # diana.controller.iterate_train()
+        if (sharon.controller.state[0] < 10):  ##change to a check capture / completion function later
+            sharon.controller.iterate_train()
+        else:
+            if (sharon.record_success_flag == 0):
+                sharon.success += 1
+                sharon.record_success_flag = 1
+
+
+        if (diana.controller.state[0] < 10):  ##change to a check capture / completion function later
+            diana.controller.iterate_train()
+        else:
+            if(diana.record_success_flag == 0):
+                diana.success+=1
+                diana.record_success_flag = 1
+        if (sharon.controller.state[0] >= 10 and diana.controller.state[0]>=10):
+            break
+    sharon.controller.updates_after_an_epoch()
+    sharon.record_success_flag = 0
+    sharon.reward_total.append(sharon.reward_sum_for_a_single_epoch())
+    diana.controller.updates_after_an_epoch()
+    diana.record_success_flag = 0
+    diana.reward_total.append(diana.reward_sum_for_a_single_epoch())
+    # sharon.run_one_epoch()
     if (i % 100 == 0):
         print(i)
         print("time:", time.time()-start)
-        print("xy path",sharon.controller.path) #numerical values of path
+        print("xy path of sharon",sharon.controller.path) #numerical values of path
+    if (i % 100 == 0):
+        print(i)
+        print("time:", time.time() - start)
+        print("xy path of diana", diana.controller.path)  # numerical values of path
         #print("input, ut:", sharon.controller.input)
 
 end = time.time()
@@ -52,11 +80,11 @@ print('total train time : ', end-start)
 print(' total num of successes during training : ', sharon.success)
 
 # Print the path that our agent sharon took in her last epoch
-print("xy path",sharon.controller.path) #numerical values of path
+#print("xy path",sharon.controller.path) #numerical values of path
 print("input, ut:" , sharon.controller.input)
-sharon.print_path() #graph
+# sharon.print_path()
 sharon.print_reward_graph()
-
+diana.print_reward_graph()
 sharon.save_epoch_training_info() #save all the important info from our training sesh
 
 

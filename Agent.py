@@ -16,6 +16,7 @@ class Agent:
         self.game_iterations_max = 45
         self.controller = controller # this is the controller (FACL or FQL) that gets passed into the actor object
         self.success = 0 # this will count the number of sucesses (to be taken out later)
+        self.record_success_flag = 0
         self.figure_number =1
         self.reward_total = []
 

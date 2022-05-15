@@ -17,7 +17,7 @@ class VDControl(FACL):
         self.velocity_path = 0
         self.input = 0
         self.initial_position = state.copy()
-        self.territory_coordinates = [10,10]  # these will eventually be in the game class and passed into the actor
+        self.finish_line = 5  # these will eventually be in the game class and passed into the actor
         self.r = 1 #radius of the finish line/territory
         self.a = 0 # acceleration
         self.v = 0 # velocity, m/s
@@ -34,8 +34,8 @@ class VDControl(FACL):
 
     def get_reward(self):
         self.distance_away_from_target_t_plus_1 = self.distance_from_target()
-        if (self.state[0]  >= self.territory_coordinates[0] ):
-            r = 200
+        if (self.state[0]  >= self.finish_line ):
+            r = 300
 
         else:
             r = 100*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
@@ -98,7 +98,7 @@ class VDControl(FACL):
 
     def distance_from_target(self):
         distance_away_from_target = np.sqrt(
-            (self.state[0] - self.territory_coordinates[0]) ** 2 + (self.state[1] - self.territory_coordinates[1]) ** 2)
+            (self.state[0] - self.finish_line) ** 2 + (self.state[1] - self.finish_line) ** 2)
         return distance_away_from_target
 
     def save(self):

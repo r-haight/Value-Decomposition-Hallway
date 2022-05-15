@@ -42,30 +42,58 @@ for i in range(1500):
     for j in range(sharon.training_iterations_max):
         # sharon.controller.iterate_train()
         # diana.controller.iterate_train()
-        if (sharon.controller.state[0] < 10):  ##change to a check capture / completion function later
-            sharon.controller.iterate_train()
-        else:
-            if (sharon.record_success_flag == 0):
+        if (sharon.controller.state[0] < sharon.controller.finish_line and diana.controller.state[0] <  diana.controller.finish_line):  ##if both havent crossed the finish line, train
+            sharon.controller.generate_noise()
+            diana.controller.generate_noise()
+
+            # Step 3 :  calculate the necessary action
+            sharon.controller.calculate_ut()
+            diana.controller.calculate_ut()
+
+            # Step 4: calculate the value function at current iterate/time step
+            sharon.controller.v_t = sharon.controller.calculate_vt(sharon.controller.phi) #  v_t = sum of self.phi[l] * self.zeta[l]
+            diana.controller.v_t = diana.controller.calculate_vt(diana.controller.phi)
+
+            # Step 5: update the state of the system
+            sharon.controller.update_state()
+            sharon.controller.phi_next = sharon.controller.update_phi()
+            diana.controller.update_state()
+            diana.controller.phi_next = diana.controller.update_phi()
+
+            # Step 6: get reward, this will be replaced for value decomp?
+            sharon.controller.reward = sharon.controller.get_reward()
+            diana.controller.reward = diana.controller.get_reward()
+
+
+            # Step 7: Calculate the expected value for the next step
+            sharon.controller.v_t_1 = sharon.controller.calculate_vt(sharon.controller.phi_next) # self.phi[l] * self.zeta[l]
+            diana.controller.v_t_1 = diana.controller.calculate_vt(diana.controller.phi_next)
+
+            # Step 8: calculate the temporal difference
+            sharon.controller.calculate_prediction_error()
+            diana.controller.calculate_prediction_error()
+
+            # Step 9: update the actor and critic functions
+            sharon.controller.update_zeta() # update the critic
+            sharon.controller.update_omega() # update the actor
+            diana.controller.update_zeta()  # update the critic
+            diana.controller.update_omega()  # update the actor
+
+            sharon.controller.phi = sharon.controller.phi_next
+            diana.controller.phi = diana.controller.phi_next
+        else: #if an agent has crossed the line
+            if (sharon.controller.state[0] >= sharon.controller.finish_line):
                 sharon.success += 1
-                sharon.record_success_flag = 1
-
-
-        if (diana.controller.state[0] < 10):  ##change to a check capture / completion function later
-            diana.controller.iterate_train()
-        else:
-            if(diana.record_success_flag == 0):
-                diana.success+=1
-                diana.record_success_flag = 1
-        if (sharon.controller.state[0] >= 10 and diana.controller.state[0]>=10):
+            if (diana.controller.state[0] >= diana.controller.finish_line):
+                diana.success += 1
             break
+
     sharon.controller.updates_after_an_epoch()
-    sharon.record_success_flag = 0
     sharon.reward_total.append(sharon.reward_sum_for_a_single_epoch())
     diana.controller.updates_after_an_epoch()
-    diana.record_success_flag = 0
     diana.reward_total.append(diana.reward_sum_for_a_single_epoch())
     # sharon.run_one_epoch()
-    if (i % 100 == 0):
+    if (i % 50 == 0):
         print(i)
         print("time:", time.time()-start)
         print("xy path of sharon",sharon.controller.path) #numerical values of path
@@ -77,8 +105,8 @@ for i in range(1500):
 
 end = time.time()
 print('total train time : ', end-start)
-print(' total num of successes during training : ', sharon.success)
-
+print(' total num of successes during training for sharon : ', sharon.success)
+print(' total num of successes during training for diana : ', diana.success)
 # Print the path that our agent sharon took in her last epoch
 #print("xy path",sharon.controller.path) #numerical values of path
 print("input, ut:" , sharon.controller.input)

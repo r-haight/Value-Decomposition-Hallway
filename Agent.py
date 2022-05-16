@@ -12,7 +12,7 @@ import numpy as np
 class Agent:
     def __init__(self, controller):
         # default values
-        self.training_iterations_max = 500 # number of iteration in 1 epoch
+        self.training_iterations_max = 550 # number of iteration in 1 epoch
         self.game_iterations_max = 45
         self.controller = controller # this is the controller (FACL or FQL) that gets passed into the actor object
         self.success = 0 # this will count the number of sucesses (to be taken out later)
@@ -81,5 +81,16 @@ class Agent:
     # prints a plot of the rewards obtained during each epoch
     def print_reward_graph(self):
         fig, ax = plt.subplots()
+        plt.title('rewards')
+        plt.xlabel('epoch')
+        plt.ylabel('sum of rewards per epoch')
         ax.plot(self.reward_total)
+        plt.show()
+        pass
+    def print_velocity_graph(self):
+        fig, ax = plt.subplots()
+        plt.title('velocity of agent')
+        plt.xlabel('time')
+        plt.ylabel('velocity')
+        ax.plot(self.controller.velocity_path)
         plt.show()

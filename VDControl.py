@@ -35,7 +35,7 @@ class VDControl(FACL):
     def get_reward(self):
         self.distance_away_from_target_t_plus_1 = self.distance_from_target()
         if (self.state[0]  >= self.finish_line ):
-            r = 300
+            r = 0
 
         else:
             r = 100*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
@@ -82,6 +82,8 @@ class VDControl(FACL):
         self.input = 0
         self.a = 0
         self.v = 0
+        self.velocity_path = []
+        self.velocity_path = 0
         pass
 
     def update_path(self, state):
@@ -112,7 +114,7 @@ class VDControl(FACL):
         with open("fuzzy_info.txt", "a") as f:
              np.savetxt(f, self.fuzzy_info_min, fmt='%1.3f', newline="\n")
              np.savetxt(f, self.fuzzy_info_nmf,fmt='%1.3f', newline="\n")
-
+        savetxt('u_t.csv', self.input, delimiter=',')
         pass
     def load(self):
         self.omega = np.loadtxt('actor_weights.csv', delimiter=',')

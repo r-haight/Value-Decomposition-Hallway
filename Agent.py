@@ -12,7 +12,7 @@ import numpy as np
 class Agent:
     def __init__(self, controller):
         # default values
-        self.training_iterations_max = 550 # number of iteration in 1 epoch
+        self.training_iterations_max = 700 # number of iteration in 1 epoch
         self.game_iterations_max = 45
         self.controller = controller # this is the controller (FACL or FQL) that gets passed into the actor object
         self.success = 0 # this will count the number of sucesses (to be taken out later)
@@ -43,7 +43,7 @@ class Agent:
                 self.success += 1
                 # print('success -- end')
                 break
-        self.reward_total.append(self.reward_sum_for_a_single_epoch())
+
 
         #print(self.controller.path)
 

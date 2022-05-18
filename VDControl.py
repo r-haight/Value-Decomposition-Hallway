@@ -17,12 +17,12 @@ class VDControl(FACL):
         self.velocity_path = 0
         self.input = 0
         self.initial_position = state.copy()
-        self.finish_line = 5  # these will eventually be in the game class and passed into the actor
+        self.finish_line = 10  # these will eventually be in the game class and passed into the actor
         self.r = 1 #radius of the finish line/territory
         self.a = 0 # acceleration
         self.v = 0 # velocity, m/s
         self.m = 1 # mass, kg
-        self.b = 0.01 # viscosity, newton-second per square metre
+        self.b = 0.1 # viscosity, newton-second per square metre
         self.dt = 0.01
         self.distance_away_from_target_t_plus_1 = 0 #this gets set later
         self.distance_away_from_target_t = self.distance_from_target()
@@ -35,10 +35,10 @@ class VDControl(FACL):
     def get_reward(self):
         self.distance_away_from_target_t_plus_1 = self.distance_from_target()
         if (self.state[0]  >= self.finish_line ):
-            r = 0
+            r = 10
 
         else:
-            r = 100*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
+            r = 10*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
         # print("reward", self.distance_away_from_target_t, '-', self.distance_away_from_target_t_plus_1, '=', r)
         self.distance_away_from_target_t = self.distance_away_from_target_t_plus_1
         # heading_desired = np.arctan( (self.territory_coordinates[1] - self.state[1]) / (self.territory_coordinates[0] - self.state[0]))
@@ -60,12 +60,12 @@ class VDControl(FACL):
 
         self.a = (1 / self.m) * (self.u_t - self.b * self.v)
         self.v = self.v + self.a * self.dt
-        # for i in range(10):
-        #     self.state[0] = self.state[0] + self.v * self.dt
-        #     self.state[1] = self.state[1] + self.v * self.dt
 
-        self.state[0] = self.state[0] + self.v * self.dt
-        self.state[1] = self.state[1] + self.v * self.dt
+        # self.state[0] = self.state[0] + self.v * self.dt
+        # self.state[1] = self.state[1] + self.v * self.dt
+        for t in range(10):
+            self.state[0] = self.state[0] + self.v * self.dt
+            self.state[1] = self.state[1] + self.v * self.dt
 
         self.update_path(self.state)
         self.update_v_path(self.v)

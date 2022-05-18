@@ -24,7 +24,7 @@ class FACL:
         self.temporal_difference = float(0)
         self.indices_of_firing_rules = [] # record the index of the rules that are non zero, implement later
         self.noise = float(0)
-        self.sigma = 0.1 # standard dev of the noise, shrinks with each iteration
+        self.sigma = 0.50 # standard dev of the noise, shrinks with each iteration
         # create the fuzzy rules
         self.rule_creation(stateMax, stateMin, numMF)
         self.phi = self.update_phi() #set phi (phi = rules that are firing)
@@ -239,9 +239,9 @@ class FACL:
     # After 1 epoch of training, the standard deviation of the noise, actor and critic learning rates
     # are decreased a little
     def updates_after_an_epoch(self):
-        # self.sigma = 0.9999 * self.sigma
+        self.sigma = 0.99999 * self.sigma
         # self.alpha = 0.99999 * self.alpha
-        # self.beta = 0.99999 * self.beta
+        # self.beta = 0.999999 * self.beta
         pass
         # self.sigma = self.sigma*10**(np.log10(0.1)/1000)
         # self.alpha = self.alpha * 10 ** (np.log10(0.1) / 1000)

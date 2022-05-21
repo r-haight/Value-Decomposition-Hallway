@@ -25,10 +25,10 @@ def plot_both_velocities():
 # This driver program looks at
 
 # General Fuzzy Parameters
-state = [2, 2] # start position on the grid. make random later
-state_max = [12, 12] # max values of the grid [x,y]
-state_min = [-12, -12] # smallest value of the grid [x,y]
-num_of_mf = [7, 1] # breaking up the state space (grid in this case) into 29 membership functions
+state = [0.5,0.1] # start position on the grid. make random later
+state_max = [12, 15] # max values of the grid [x,y]
+state_min = [-12, -10] # smallest value of the grid [x,y]
+num_of_mf = [9, 15] # breaking up the state space (grid in this case) into 29 membership functions
 number_of_ties = 0
 
 
@@ -36,7 +36,7 @@ number_of_ties = 0
 # two agents: sharon and diane
 
 start = time.time() # used to see how long the training time took
-Sharon_FACLcontroller = VDControl([2,2], state_max, state_min, num_of_mf) #create the FACL controller
+Sharon_FACLcontroller = VDControl([2,0], state_max, state_min, num_of_mf) #create the FACL controller
 Diana_FACLcontroller = VDControl([0,0],state_max,state_min,num_of_mf)
 sharon = Agent(Sharon_FACLcontroller) # create the agent with the above controller
 diana = Agent(Diana_FACLcontroller)
@@ -45,13 +45,18 @@ diana = Agent(Diana_FACLcontroller)
 print("rules:")
 print(sharon.controller.rules)
 
-for i in range(1000):
+rolling_success_counter = 0
+cycle_counter = 0
+for i in range(45000):
     sharon.controller.reset()
     diana.controller.reset()
+    cycle_counter += 1
     for j in range(sharon.training_iterations_max):
         # sharon.controller.iterate_train()
         # diana.controller.iterate_train()
         if (sharon.controller.state[0] < sharon.controller.finish_line and diana.controller.state[0] <  diana.controller.finish_line):  ##if both havent crossed the finish line, train
+
+
             sharon.controller.generate_noise()
             diana.controller.generate_noise()
 
@@ -75,31 +80,41 @@ for i in range(1000):
             sharon.controller.distance_away_from_target_t_plus_1 = sharon.controller.distance_from_target()
             diana.controller.distance_away_from_target_t_plus_1 = diana.controller.distance_from_target()
             if (sharon.controller.state[0] >= sharon.controller.finish_line):
-                sharon.controller.reward = 100
+                sharon.controller.reward = 75
                 if(diana.controller.state[0]>=diana.controller.finish_line-1):
-                    diana.controller.reward = 75
+                    diana.controller.reward = 105
+                else:
+                    diana.controller.reward = 0
             elif(diana.controller.state[0]>=diana.controller.finish_line):
                 diana.controller.reward = 100
                 if (sharon.controller.state[0] >= sharon.controller.finish_line - 1):
-                    sharon.controller.reward = 75
+                    sharon.controller.reward = 100
+                else:
+                    sharon.controller.reward=0
             else:
-                sharon.controller.reward = 10 * (sharon.controller.distance_away_from_target_t - sharon.controller.distance_away_from_target_t_plus_1)
-                diana.controller.reward = 10 * (diana.controller.distance_away_from_target_t - diana.controller.distance_away_from_target_t_plus_1)
+                sharon.controller.reward = 5 * (sharon.controller.distance_away_from_target_t - sharon.controller.distance_away_from_target_t_plus_1)
+                diana.controller.reward = 5 * (diana.controller.distance_away_from_target_t - diana.controller.distance_away_from_target_t_plus_1)
             # print("reward", self.distance_away_from_target_t, '-', self.distance_away_from_target_t_plus_1, '=', r)
             sharon.controller.distance_away_from_target_t = sharon.controller.distance_away_from_target_t_plus_1
             diana.controller.distance_away_from_target_t = diana.controller.distance_away_from_target_t_plus_1
 
             sharon.controller.update_reward_graph(sharon.controller.reward)
             diana.controller.update_reward_graph(diana.controller.reward)
+
             # Step 7: Calculate the expected value for the next step
             sharon.controller.v_t_1 = sharon.controller.calculate_vt(sharon.controller.phi_next) # self.phi[l] * self.zeta[l]
             diana.controller.v_t_1 = diana.controller.calculate_vt(diana.controller.phi_next)
 
             # Step 8: calculate the temporal difference
+            #No VD
             # sharon.controller.calculate_prediction_error()
             # diana.controller.calculate_prediction_error()
+
+            # Regular VD
             # sharon.controller.temporal_difference = (sharon.controller.reward+diana.controller.reward) + sharon.controller.gamma * (sharon.controller.v_t_1 + diana.controller.v_t_1) - (sharon.controller.v_t+diana.controller.v_t)
             # diana.controller.temporal_difference = (diana.controller.reward+sharon.controller.reward) + diana.controller.gamma * (diana.controller.v_t_1+sharon.controller.v_t_1) - (diana.controller.v_t+sharon.controller.v_t)
+
+            # A weighted version of VD
             w=0.7
             sharon.controller.temporal_difference = (
                                                                 w*sharon.controller.reward + (1-w)*diana.controller.reward) + sharon.controller.gamma * (
@@ -122,6 +137,7 @@ for i in range(1000):
             if (sharon.controller.state[0] >= sharon.controller.finish_line and diana.controller.state[
                 0] >= diana.controller.finish_line):
                 number_of_ties += 1
+                rolling_success_counter+=1
                 # plot_both_velocities()
                 break
             if (sharon.controller.state[0] >= sharon.controller.finish_line):
@@ -129,6 +145,7 @@ for i in range(1000):
                 if(diana.controller.state[0]>=diana.controller.finish_line-1):
                     sharon.success-=1
                     number_of_ties+=1
+                    rolling_success_counter+=1
                     # plot_both_velocities()
                 break
             if (diana.controller.state[0] >= diana.controller.finish_line):
@@ -136,6 +153,7 @@ for i in range(1000):
                 if (sharon.controller.state[0] >= sharon.controller.finish_line - 1):
                     diana.success -= 1
                     number_of_ties += 1
+                    rolling_success_counter +=1
                     # plot_both_velocities()
                 break
 
@@ -147,7 +165,16 @@ for i in range(1000):
     diana.controller.updates_after_an_epoch()
     diana.reward_total.append(diana.reward_sum_for_a_single_epoch())
 
-    # sharon.run_one_epoch()
+    # check to see if we should stop training based on a rolling counter
+    # if we hit 2k consecutive successful training rounds, then stop training
+    if(rolling_success_counter != cycle_counter):
+        cycle_counter=0
+        rolling_success_counter=0
+
+    if (rolling_success_counter >= 1000):
+        print('number of epochs trained: ', i)
+        break
+    # print out some stats as it trains every so often
     if (i % 250 == 0):
         print(i)
         print("time:", time.time()-start)
@@ -158,6 +185,7 @@ for i in range(1000):
         print('sharon wins : ', sharon.success)
         print('diana wins ', diana.success)
         print('ties ', number_of_ties)
+        print('number of consecutive ties in a row', rolling_success_counter)
 
         #print("input, ut:", sharon.controller.input)
 
@@ -169,24 +197,8 @@ print('total number of ties', number_of_ties)
 # Print the path that our agent sharon took in her last epoch
 #print("xy path",sharon.controller.path) #numerical values of path
 print("input, ut:" , sharon.controller.input)
-# sharon.print_path()
-#
-# #Print out the reward plots combined
-# fig, ax = plt.subplots()
-# plt.title('sharon and diana rewards per epoch')
-# ax.plot(sharon.reward_total,label='sharon')
-# ax.plot(diana.reward_total,label='diana')
-# plt.xlabel('epoch')
-# plt.ylabel('total rewards per epoch')
-# plt.legend()
-# plt.show()
-#
-# sharon.print_reward_graph()
-# diana.print_reward_graph()
-#
-# plot_both_velocities()
-# sharon.print_velocity_graph()
-# diana.print_velocity_graph()
+
+
 
 sharon.success = 0
 diana.success = 0
@@ -240,14 +252,6 @@ print('sharon wins : ', sharon.success)
 print('diana wins ', diana.success)
 print('ties ', number_of_ties)
 
-# fig, ax = plt.subplots()
-# plt.title('sharon and diana final epoch velocity')
-# ax.plot(sharon.controller.path, sharon.controller.path,label='sharon')
-# ax.plot(diana.controller.velocity_path,diana.controller.velocity_path,label='diana')
-# plt.xlabel('distance')
-# plt.ylabel('velocity')
-# plt.legend()
-# plt.show()
 sharon.save_epoch_training_info() #save all the important info from our training sesh
 
 

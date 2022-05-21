@@ -41,10 +41,6 @@ class VDControl(FACL):
             r = 10*(self.distance_away_from_target_t - self.distance_away_from_target_t_plus_1)
         # print("reward", self.distance_away_from_target_t, '-', self.distance_away_from_target_t_plus_1, '=', r)
         self.distance_away_from_target_t = self.distance_away_from_target_t_plus_1
-        # heading_desired = np.arctan( (self.territory_coordinates[1] - self.state[1]) / (self.territory_coordinates[0] - self.state[0]))
-        # heading_error = heading_desired - self.u_t
-        # r = 6*np.exp(-(heading_error/0.5)**2)-3
-        # print('reward', 'exp(-', heading_error, '/0.5)^2)-3 = ',r )
         self.update_reward_graph(r)
         return r
 
@@ -53,20 +49,23 @@ class VDControl(FACL):
         # self.state[1] = self.state[1] + self.v * np.sin(self.u_t)
         # self.update_path(self.state)
         #
-        if(self.u_t>5):
-            self.u_t = 5
-        elif(self.u_t<-5):
-            self.u_t = -5
+        max = 3
+        min = -3
+        if(self.u_t>max):
+            self.u_t = max
+        elif(self.u_t<min):
+            self.u_t = min
 
         self.a = (1 / self.m) * (self.u_t - self.b * self.v)
-        self.v = self.v + self.a * self.dt
-
+        self.state[1] = self.state[1] + self.a * self.dt
+        # self.state[1] = self.v
         # self.state[0] = self.state[0] + self.v * self.dt
         # self.state[1] = self.state[1] + self.v * self.dt
         for t in range(10):
-            self.state[0] = self.state[0] + self.v * self.dt
-            self.state[1] = self.state[1] + self.v * self.dt
+            self.state[0] = self.state[0] + self.state[1] * self.dt
+            self.state[1] = self.state[1] + self.a * self.dt
 
+        self.v=self.state[1]
         self.update_path(self.state)
         self.update_v_path(self.v)
         self.update_input_array(self.u_t)

@@ -115,7 +115,7 @@ for i in range(45000):
             # diana.controller.temporal_difference = (diana.controller.reward+sharon.controller.reward) + diana.controller.gamma * (diana.controller.v_t_1+sharon.controller.v_t_1) - (diana.controller.v_t+sharon.controller.v_t)
 
             # A weighted version of VD
-            w=0.7
+            w=0.75
             sharon.controller.temporal_difference = (
                                                                 w*sharon.controller.reward + (1-w)*diana.controller.reward) + sharon.controller.gamma * (
                                                                 w*sharon.controller.v_t_1 + (1-w)*diana.controller.v_t_1) - (

@@ -239,9 +239,9 @@ class FACL:
     # After 1 epoch of training, the standard deviation of the noise, actor and critic learning rates
     # are decreased a little
     def updates_after_an_epoch(self):
-        # self.sigma = 0.99999 * self.sigma
-        # self.alpha = 0.99999 * self.alpha
-        # self.beta = 0.99999 * self.beta
+        self.sigma = 0.9999 * self.sigma
+        self.alpha = 0.9999 * self.alpha
+        self.beta = 0.9999 * self.beta
         pass
         # self.sigma = self.sigma*10**(np.log10(0.1)/1000)
         # self.alpha = self.alpha * 10 ** (np.log10(0.1) / 1000)

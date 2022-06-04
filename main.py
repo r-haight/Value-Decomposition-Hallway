@@ -25,10 +25,10 @@ def plot_both_velocities():
 # This driver program looks at
 
 # General Fuzzy Parameters
-state = [0.5,0.1] # start position on the grid. make random later
-state_max = [12, 15] # max values of the grid [x,y]
-state_min = [-12, -10] # smallest value of the grid [x,y]
-num_of_mf = [9, 15] # breaking up the state space (grid in this case) into 29 membership functions
+state = [2,0,0,0] # Sharon position, Sharon Velocity, Diana position, Diana Velcoity
+state_max = [12, 15, 12, 15] # max values of the grid [x,y]
+state_min = [-12, -10, -12, -10]  # smallest value of the grid [x,y]
+num_of_mf = [9, 9, 9, 9]  # breaking up the state space (grid in this case) into 29 membership functions
 number_of_ties = 0
 
 
@@ -36,18 +36,18 @@ number_of_ties = 0
 # two agents: sharon and diane
 
 start = time.time() # used to see how long the training time took
-Sharon_FACLcontroller = VDControl([2,0], state_max, state_min, num_of_mf) #create the FACL controller
-Diana_FACLcontroller = VDControl([0,0],state_max,state_min,num_of_mf)
+Sharon_FACLcontroller = VDControl([2,0,0,0], state_max, state_min, num_of_mf) #create the FACL controller
+Diana_FACLcontroller = VDControl([0,0,2,0],state_max,state_min,num_of_mf)
 sharon = Agent(Sharon_FACLcontroller) # create the agent with the above controller
 diana = Agent(Diana_FACLcontroller)
 
 #print out all the rule sets
-print("rules:")
-print(sharon.controller.rules)
+#print("rules:")
+#print(sharon.controller.rules)
 
 rolling_success_counter = 0
 cycle_counter = 0
-for i in range(45000):
+for i in range(20000):
     sharon.controller.reset()
     diana.controller.reset()
     cycle_counter += 1
@@ -69,9 +69,49 @@ for i in range(45000):
             diana.controller.v_t = diana.controller.calculate_vt(diana.controller.phi)
 
             # Step 5: update the state of the system
-            sharon.controller.update_state()
+            max = 3
+            min = -3
+            if (sharon.controller.u_t > max):
+                sharon.controller.u_t = max
+            elif (sharon.controller.u_t < min):
+                sharon.controller.u_t = min
+            if (diana.controller.u_t > max):
+                diana.controller.u_t = max
+            elif (diana.controller.u_t < min):
+                diana.controller.u_t = min
+
+            sharon.controller.a = (1 / sharon.controller.m) * (sharon.controller.u_t - sharon.controller.b * sharon.controller.state[1])
+            sharon.controller.state[1] = sharon.controller.state[1] + sharon.controller.a * sharon.controller.dt
+            diana.controller.a = (1 / diana.controller.m) * (
+                        diana.controller.u_t - diana.controller.b * diana.controller.state[1])
+            diana.controller.state[1] = diana.controller.state[1] + diana.controller.a * diana.controller.dt
+            for t in range(10):
+                sharon.controller.state[0] = sharon.controller.state[0] + sharon.controller.state[1] * sharon.controller.dt
+                sharon.controller.state[1] = sharon.controller.state[1] + sharon.controller.a * sharon.controller.dt
+            for t in range(10):
+                diana.controller.state[0] = diana.controller.state[0] + diana.controller.state[
+                    1] * diana.controller.dt
+                diana.controller.state[1] = diana.controller.state[1] + diana.controller.a * diana.controller.dt
+
+
+
+            sharon.controller.state[2] = diana.controller.state[0]
+            sharon.controller.state[3] = diana.controller.state[1]
+            diana.controller.state[2] = sharon.controller.state[0]
+            diana.controller.state[3] = sharon.controller.state[1]
+
+            sharon.controller.v = sharon.controller.state[1]
+            sharon.controller.update_path(sharon.controller.state)
+            sharon.controller.update_v_path(sharon.controller.state[1])
+            sharon.controller.update_input_array(sharon.controller.u_t)
+            diana.controller.v = diana.controller.state[1]
+            diana.controller.update_path(diana.controller.state)
+            diana.controller.update_v_path(diana.controller.state[1])
+            diana.controller.update_input_array(diana.controller.u_t)
+
+            #sharon.controller.update_state()
             sharon.controller.phi_next = sharon.controller.update_phi()
-            diana.controller.update_state()
+            #diana.controller.update_state()
             diana.controller.phi_next = diana.controller.update_phi()
 
             # Step 6: get reward, this will be replaced for value decomp?
@@ -175,7 +215,7 @@ for i in range(45000):
         print('number of epochs trained: ', i)
         break
     # print out some stats as it trains every so often
-    if (i % 250 == 0):
+    if (i % 10 == 0):
         print(i)
         print("time:", time.time()-start)
         print("xy path of sharon",sharon.controller.path[len(sharon.controller.path)-1]) #numerical values of path

@@ -35,7 +35,7 @@ state_min = [-12, -5, -12, -5]  # smallest value of the grid [x,y]
 num_of_mf = [7, 5, 7, 5]  # breaking up the state space (grid in this case) into 29 membership functions
 number_of_ties = 0
 starting_pos = [0,  1,  2, 3, 4]
-tol = 0.75
+tol = 0.8
 ########## TRAINING SECTION ###############
 # two agents: sharon and diane
 
@@ -51,19 +51,19 @@ diana = Agent(Diana_FACLcontroller)
 
 rolling_success_counter = 0
 cycle_counter = 0
-for i in range(10000):
+for i in range(15000):
     sharon.controller.reset()
     diana.controller.reset()
 
     # Start at new positions each time
     sharon_start = random.choice(starting_pos)
-    diana_start = random.choice(starting_pos)
-    sharon.controller.state[0] = sharon_start
-    diana.controller.state[0] = diana_start
-    sharon.controller.state[2] = diana_start
-    diana.controller.state[2] = sharon_start
-    diana.controller.distance_away_from_target_t = diana.controller.distance_from_target()
-    sharon.controller.distance_away_from_target_t = sharon.controller.distance_from_target()
+    diana_start = sharon_start - 2 #random.choice(starting_pos)
+    # sharon.controller.state[0] = sharon_start
+    # diana.controller.state[0] = diana_start
+    # sharon.controller.state[2] = diana_start
+    # diana.controller.state[2] = sharon_start
+    # diana.controller.distance_away_from_target_t = diana.controller.distance_from_target()
+    # sharon.controller.distance_away_from_target_t = sharon.controller.distance_from_target()
     cycle_counter += 1
     for j in range(sharon.training_iterations_max):
         # sharon.controller.iterate_train()
@@ -139,27 +139,30 @@ for i in range(10000):
             sharon.controller.distance_away_from_target_t_plus_1 = sharon.controller.distance_from_target()
             diana.controller.distance_away_from_target_t_plus_1 = diana.controller.distance_from_target()
             if (sharon.controller.state[0] >= sharon.controller.finish_line):
-                sharon.controller.reward = 50
+                sharon.controller.reward = -10
                 if(diana.controller.state[0]>=diana.controller.finish_line-tol):
                     diana.controller.reward = 50
-                else:
-                    diana.controller.reward = 0
-                sharon.controller.reward = sharon.controller.reward*0.8 + 0.2*(sharon.controller.reward+diana.controller.reward)
-                diana.controller.reward = diana.controller.reward*0.8 + 0.2*(sharon.controller.reward+diana.controller.reward)
-
-            elif(diana.controller.state[0]>=diana.controller.finish_line):
-                diana.controller.reward = 50
-                if (sharon.controller.state[0] >= sharon.controller.finish_line - tol):
                     sharon.controller.reward = 50
                 else:
+                    diana.controller.reward = 0
+                sharon.controller.reward = sharon.controller.reward*0.5 + 0.5*(sharon.controller.reward+diana.controller.reward)
+                diana.controller.reward = diana.controller.reward*0.5 + 0.5*(sharon.controller.reward+diana.controller.reward)
+
+            elif(diana.controller.state[0]>=diana.controller.finish_line):
+                diana.controller.reward = -10
+                if (sharon.controller.state[0] >= sharon.controller.finish_line - tol):
+                    sharon.controller.reward = 50
+                    diana.controller.reward = 50
+                else:
                     sharon.controller.reward=0
-                sharon.controller.reward = sharon.controller.reward * 0.8 + 0.2 * (
+                sharon.controller.reward = sharon.controller.reward * 0.5 + 0.5 * (
                             sharon.controller.reward + diana.controller.reward)
-                diana.controller.reward = diana.controller.reward * 0.8 + 0.2 * (
+                diana.controller.reward = diana.controller.reward * 0.5 + 0.5 * (
                             sharon.controller.reward + diana.controller.reward)
             else:
-                sharon.controller.reward =  (sharon.controller.distance_away_from_target_t - sharon.controller.distance_away_from_target_t_plus_1)
-                diana.controller.reward =  (diana.controller.distance_away_from_target_t - diana.controller.distance_away_from_target_t_plus_1)
+                w = 0.3
+                sharon.controller.reward =  w*(sharon.controller.distance_away_from_target_t - sharon.controller.distance_away_from_target_t_plus_1) + (1-w)*np.exp(-(sharon.controller.state[0]-sharon.controller.state[2])**2)
+                diana.controller.reward =  w*(diana.controller.distance_away_from_target_t - diana.controller.distance_away_from_target_t_plus_1) + (1-w)*np.exp(-(diana.controller.state[0]-diana.controller.state[2])**2)
             # print("reward", self.distance_away_from_target_t, '-', self.distance_away_from_target_t_plus_1, '=', r)
             sharon.controller.distance_away_from_target_t = sharon.controller.distance_away_from_target_t_plus_1
             diana.controller.distance_away_from_target_t = diana.controller.distance_away_from_target_t_plus_1
@@ -238,11 +241,17 @@ for i in range(10000):
         cycle_counter=0
         rolling_success_counter=0
 
+    if (rolling_success_counter == 250):
+        print('number of epochs trained: ', i)
+        #break
+        sharon.controller.sigma = 0.1
+        diana.controller.sigma = 0.1
     if (rolling_success_counter >= 1000):
         print('number of epochs trained: ', i)
         break
+
     # print out some stats as it trains every so often
-    if (i % 1000 == 0):
+    if (i % 100 == 0):
         print(i)
         print("time:", time.time()-start)
         print("xy path of sharon",sharon.controller.path[len(sharon.controller.path)-1]) #numerical values of path
@@ -278,13 +287,15 @@ plt.close(fig)    # close the figure window
 plot_both_velocities()
 
 #Save the training data
-
-userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/sharon')
-np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),sharon.controller.zeta)
-np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),sharon.controller.omega)
-userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/diana')
-np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),diana.controller.zeta)
-np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),diana.controller.omega)
+#
+# # userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/sharon')
+# userdoc = osp.join(osp.expanduser("~"), 'Users\Rachel Haighton\PycharmProjects\Value Decomposition - Hallway/sharon')
+# np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),sharon.controller.zeta)
+# np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),sharon.controller.omega)
+# # userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/diana')
+# userdoc = osp.join(osp.expanduser("~"), 'Users\Rachel Haighton\PycharmProjects\Value Decomposition - Hallway/diana')
+# np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),diana.controller.zeta)
+# np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),diana.controller.omega)
 sharon.success = 0
 diana.success = 0
 number_of_ties=0
@@ -416,3 +427,11 @@ print('ties ', number_of_ties)
 # plot_both_velocities()
 # sharon.print_velocity_graph()
 # diana.print_velocity_graph()
+# userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/sharon')
+userdoc = osp.join(osp.expanduser("~"), 'Users\Rachel Haighton')
+np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),sharon.controller.zeta)
+np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),sharon.controller.omega)
+# userdoc = osp.join(osp.expanduser("~"),'/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/diana')
+userdoc = osp.join(osp.expanduser("~"), 'Users\Rachel Haighton')
+np.savetxt(osp.join(userdoc, "%s.csv" % 'critic_weights'),diana.controller.zeta)
+np.savetxt(osp.join(userdoc, "%s.txt" % 'actor_weights'),diana.controller.omega)

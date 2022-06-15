@@ -56,15 +56,17 @@ class VDControl(FACL):
         elif(self.u_t<min):
             self.u_t = min
 
-        self.a = (1 / self.m) * (self.u_t - self.b * self.state[1])
-        self.state[1] = self.state[1] + self.a * self.dt
+        # self.a = (1 / self.m) * (self.u_t - self.b * self.state[1])
+        # self.state[1] = self.state[1] + self.a * self.dt
         # self.state[1] = self.v
         # self.state[0] = self.state[0] + self.v * self.dt
         # self.state[1] = self.state[1] + self.v * self.dt
         for t in range(10):
-            self.state[0] = self.state[0] + self.state[1] * self.dt
-            self.state[1] = self.state[1] + self.a * self.dt
             self.a = (1 / self.m) * (self.u_t - self.b * self.state[1])
+            self.state[1] = self.state[1] + self.a * self.dt
+            self.state[0] = self.state[0] + self.state[1] * self.dt
+
+
 
         self.v=self.state[1]
         self.update_path(self.state)

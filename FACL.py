@@ -12,7 +12,7 @@ class FACL:
     def __init__(self, stateMax : list, stateMin : list, numMF : list):
         self.alpha = 0.1  # critic learning rate
         self.beta = 0.05  # actor learning rate
-        self.gamma = 0.9  # discount factor
+        self.gamma = 0.99  # discount factor
         self.L = int(np.prod(numMF) ) # total number of rules
         self.zeta = np.zeros(self.L)  # critic
         self.omega = np.zeros(self.L)  # actor
@@ -45,6 +45,7 @@ class FACL:
         triangle_matrix = []
         for sMax, sMin, nMf in zip(state_max, state_min, number_of_mf):
             boundary_array = self.calculate_boundary_values(sMax, sMin, nMf) # divides up the state space and records the values
+            print(boundary_array)
             triangle_matrix.append(self.create_triangular_sets(nMf, boundary_array)) # creates the triangular values for the Membership Function
             pass
 
@@ -66,6 +67,7 @@ class FACL:
                 pass
             pass
         self.rules = combinations
+        # print(self.rules)
 
         pass
 
@@ -126,14 +128,14 @@ class FACL:
                 else:
                     product_of_rule[l] = 0
         # Sum all the array values of the products for all rules
-        #sum_of_rules_fired = sum(product_of_rule)
+        sum_of_rules_fired = sum(product_of_rule)
 
         # Calculate phi^l
-        # phi = np.zeros(self.L)
-        # for l in range(self.L):
-        #     phi[l] = product_of_rule[l] #/ sum_of_rules_fired
+        phi = np.zeros(self.L)
+        for l in range(self.L):
+            phi[l] = product_of_rule[l] / float(sum_of_rules_fired)
 
-        phi = product_of_rule.copy() # divided by the sum of rules fired
+        # phi = product_of_rule.copy() # divided by the sum of rules fired
                                      # but since the mf are triangular
                                      # the sum is always 1
         product_of_rule = None # delete the array just in case

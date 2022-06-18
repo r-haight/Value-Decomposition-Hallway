@@ -129,6 +129,12 @@ def run_epoch_and_games(w, directory_path, training_text_name, num_games, num_ep
                 if (diana.controller.state[1] >10 or sharon.controller.state[1] > 10):
                     print(i," vel state went above")
                     break
+                if (diana.controller.state[3] >20 or sharon.controller.state[3] > 20):
+                    print(i," delta state went above")
+                    break
+                if (diana.controller.state[3] <-20 or sharon.controller.state[3] <-20):
+                    print(i," delta state went below")
+                    break
                 # sharon.controller.update_state()
                 sharon.controller.phi_next = sharon.controller.update_phi()
                 # diana.controller.update_state()
@@ -247,7 +253,7 @@ def run_epoch_and_games(w, directory_path, training_text_name, num_games, num_ep
             f.write("\n")
             break
         # print out some stats as it trains every so often
-        if (i % 50 == 0):
+        if (i % 100 == 0):
             print('epoch ', i)
             print("ties ", number_of_ties)
             print('sharon w : ', sharon.success)
@@ -444,10 +450,10 @@ def run_epoch_and_games(w, directory_path, training_text_name, num_games, num_ep
 
 # run_epoch_and_games(0.1, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.1", "training_01.txt", 500, 15000)
 # run_epoch_and_games(0.2, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.2", "training_02.txt", 500, 15000)
-run_epoch_and_games(0.8, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.8", "training_081.txt", 500, 20000)
-run_epoch_and_games(0.7, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.7", "training_072.txt", 500, 20000)
-run_epoch_and_games(0.9, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.9", "training_093.txt", 500, 20000)
-run_epoch_and_games(0.3, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.3", "training_034.txt", 500, 20000)
-run_epoch_and_games(0.3, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.3", "training_035.txt", 500, 20000)
+run_epoch_and_games(0.6, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.6", "training_065_18.txt", 500, 20000)
+run_epoch_and_games(0.8, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.8", "training_081_18.txt", 500, 20000)
+run_epoch_and_games(0.7, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.7", "training_072_18.txt", 500, 20000)
+run_epoch_and_games(0.9, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.9", "training_093_18.txt", 500, 20000)
+run_epoch_and_games(0.5, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.5", "training_054_18.txt", 500, 20000)
 # run_epoch_and_games(0.8, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.8", "training_08.txt", 500, 15000)
 # run_epoch_and_games(0.9, "/Users/rachelhaighton/PycharmProjects/Value-Decomposition-Hallway/w 0.9", "training_09.txt", 500, 15000)
